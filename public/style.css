@@ -1,0 +1,304 @@
+:root {
+  --bg: #12081f;
+  --bg2: #1e0b33;
+  --panel: #241040;
+  --panel2: #2e1450;
+  --pink: #ff2e88;
+  --violet: #a855f7;
+  --cyan: #22d3ee;
+  --text: #f5f0ff;
+  --muted: #c4b5e0;
+  --line: #4c2a7a;
+  --gold: #fbbf24;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: linear-gradient(160deg, var(--bg), var(--bg2) 60%, #2a0a2e);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+h1, h2, h3 { margin: 0 0 10px; }
+h1 { font-size: 26px; }
+h2 { font-size: 20px; }
+h3 { font-size: 16px; }
+
+button, input, select { font: inherit; }
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+.logo { font-size: 22px; font-weight: 800; letter-spacing: 1px; }
+.logo span { color: var(--pink); }
+
+.top-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+
+.badge {
+  background: var(--panel2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 5px 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.badge.coins { color: var(--gold); }
+
+.btn {
+  background: linear-gradient(90deg, var(--pink), var(--violet));
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.btn:hover { filter: brightness(1.15); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn.small { padding: 7px 12px; font-size: 14px; }
+.btn.ghost { background: var(--panel2); border: 1px solid var(--line); }
+
+.notice {
+  margin: 12px 16px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: #3b1d02;
+  border: 1px solid #b45309;
+  color: #fde68a;
+}
+
+main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+
+.hero p { color: var(--muted); }
+
+.profile-card, .panel, .create-room {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 18px;
+}
+
+.profile-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: end; }
+.profile-row label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--muted); }
+
+input[type="text"], select {
+  background: #160a28;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 10px;
+  min-width: 0;
+}
+input[type="color"] { padding: 2px; width: 52px; height: 36px; background: #160a28; border: 1px solid var(--line); border-radius: 8px; }
+
+.avatar-pick { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 12px; }
+.avatar-pick label { display: flex; flex-direction: column; gap: 4px; font-size: 14px; color: var(--muted); }
+
+.avatar-preview {
+  margin-top: 12px;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  border: 3px solid var(--pink);
+  background: var(--panel2);
+}
+
+.hint { color: var(--muted); font-size: 13px; }
+
+.room-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.room-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  text-align: left;
+  color: var(--text);
+  cursor: pointer;
+}
+.room-card:hover { border-color: var(--pink); }
+.room-card h3 { margin-bottom: 4px; }
+.room-card p { margin: 4px 0; color: var(--muted); font-size: 14px; }
+.room-card.closed { opacity: 0.6; cursor: not-allowed; }
+.room-card .open-tag { color: var(--gold); font-weight: 700; }
+
+.room-topbar { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+.room-topbar h2 { margin: 0; }
+
+.room-layout { display: grid; grid-template-columns: 1.6fr 1fr; gap: 16px; align-items: start; }
+@media (max-width: 900px) { .room-layout { grid-template-columns: 1fr; } }
+
+.stage-wrap {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: #0a0514;
+  aspect-ratio: 16 / 9;
+}
+#stage-3d { position: absolute; inset: 0; }
+#stage-3d, #stage-3d canvas { width: 100%; height: 100%; display: block; }
+
+/* Man hinh video: o che do 2D chiem phan tren san khau, o che do 3D troi
+   nhu mot man hinh lon treo trong phong 3D. Luon hien thi o ca 2 che do. */
+.screen-2d { position: absolute; background: #000; z-index: 2; overflow: hidden; }
+.stage-wrap.mode-2d .screen-2d { top: 0; left: 0; right: 0; bottom: 92px; }
+.stage-wrap.mode-3d .screen-2d {
+  top: 7%; left: 17%; right: 17%; bottom: 36%;
+  border: 2px solid var(--violet); border-radius: 8px;
+  box-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
+}
+.stage-2d { position: absolute; left: 0; right: 0; bottom: 0; height: 92px; z-index: 3; }
+.stage-wrap.mode-3d .stage-2d { display: none; }
+.screen-2d iframe { width: 100%; height: 100%; border: 0; display: block; }
+.yt-fallback {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 20px; background: #160a28; color: var(--muted);
+}
+.ad-waiting {
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.75); color: var(--gold);
+  padding: 8px 14px; border-radius: 20px; font-size: 14px; z-index: 5;
+}
+.cheer-overlay {
+  position: absolute; bottom: 44px; left: 0; right: 0; text-align: center;
+  font-size: 22px; font-weight: 800; color: #fff;
+  text-shadow: 0 2px 12px var(--pink), 0 0 24px var(--violet);
+  pointer-events: none; z-index: 6;
+}
+.subtitle-line {
+  position: absolute; bottom: 8px; left: 0; right: 0; text-align: center;
+  font-size: 16px; color: #fff; text-shadow: 0 1px 6px #000; z-index: 5;
+}
+
+.singer-2d {
+  display: flex; align-items: center; gap: 12px;
+  padding: 8px 12px;
+  background: linear-gradient(90deg, #3b0764, #831843);
+}
+.chibi { font-size: 34px; line-height: 1; }
+.chibi-head { position: relative; display: inline-block; }
+.chibi-mouth {
+  display: block; width: 16px; height: calc(4px + var(--mouth, 0) * 12px);
+  background: #7f1d1d; border-radius: 50%; margin: 0 auto;
+  transition: height 0.08s linear;
+}
+.singer-name { font-weight: 700; }
+.laser {
+  position: absolute; inset: 0; pointer-events: none; z-index: 4;
+  background:
+    linear-gradient(115deg, transparent 46%, rgba(34, 211, 238, 0.25) 48%, transparent 52%),
+    linear-gradient(65deg, transparent 60%, rgba(255, 46, 136, 0.25) 62%, transparent 66%);
+}
+.laser.off { display: none; }
+
+.stage-error {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  text-align: center; padding: 20px; background: rgba(10, 5, 20, 0.92); color: var(--muted); z-index: 8;
+}
+
+.camera-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 12px 0; }
+.camera-row .cam-btn.active { outline: 2px solid var(--cyan); }
+
+.now-playing { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; }
+.score-box {
+  background: #14532d; border: 1px solid #22c55e; color: #dcfce7;
+  border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 18px;
+}
+.controls, .star-vote { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }
+.star-btn { font-size: 16px; }
+.star-btn.voted { outline: 2px solid var(--gold); }
+
+.mic-box { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 14px; }
+.mic-box label { display: block; margin: 8px 0; font-size: 14px; color: var(--muted); }
+.check { display: flex; gap: 6px; align-items: center; }
+.mic-level { height: 10px; background: #160a28; border-radius: 6px; overflow: hidden; margin-top: 10px; }
+#mic-level-bar { height: 100%; width: 0%; background: linear-gradient(90deg, var(--cyan), var(--pink)); }
+
+.seats-box { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px; }
+.seats { display: flex; flex-wrap: wrap; gap: 8px; }
+.seat {
+  border: 1px solid var(--line); background: var(--panel2); color: var(--text);
+  border-radius: 10px; padding: 8px 10px; cursor: pointer; font-size: 13px; min-width: 86px;
+}
+.seat small { display: block; color: var(--muted); }
+.seat.mine { border-color: var(--gold); outline: 2px solid var(--gold); }
+.seat.full { opacity: 0.55; }
+.seat.triple { border-style: dashed; }
+
+.panel { margin-bottom: 14px; }
+.add-song { display: flex; gap: 8px; margin-bottom: 8px; }
+.add-song input { flex: 1; }
+.search-results { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.search-item {
+  display: flex; gap: 8px; align-items: center; justify-content: space-between;
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px;
+  font-size: 14px; text-align: left;
+}
+.queue-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.queue-list li {
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px;
+  display: flex; justify-content: space-between; gap: 8px; align-items: center; font-size: 14px;
+}
+.queue-list .q-title { flex: 1; }
+.queue-list .q-meta { color: var(--muted); font-size: 12px; }
+
+.gifts { display: flex; gap: 8px; flex-wrap: wrap; }
+.gift-btn { background: var(--panel2); border: 1px solid var(--line); color: var(--text); border-radius: 10px; padding: 8px 10px; cursor: pointer; }
+.gift-btn small { display: block; color: var(--gold); }
+
+.leaderboard { margin: 0; padding-left: 20px; }
+.leaderboard li { margin-bottom: 4px; }
+
+.chat-panel { display: flex; flex-direction: column; }
+.chat-log {
+  height: 220px; overflow-y: auto; background: #160a28; border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 14px;
+}
+.chat-log div { margin-bottom: 6px; }
+.chat-log .sys { color: var(--gold); }
+.emote-row { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.emote-row button { background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: 16px; }
+
+.modal {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.6);
+  display: flex; align-items: center; justify-content: center; z-index: 50;
+}
+.modal-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px; width: min(420px, 92vw); }
+.modal-card label { display: block; margin: 10px 0; }
+
+/* An nut, chi de lai chat (cai dat tren may nguoi dung) */
+body.hide-buttons #controls,
+body.hide-buttons #star-vote,
+body.hide-buttons .mic-box,
+body.hide-buttons .camera-row,
+body.hide-buttons .seats-box { display: none; }
+
+/* Chi hien muc dung cho khong gian dang vao */
+body.mode-cinema .karaoke-only { display: none !important; }
+body.mode-karaoke .cinema-only { display: none !important; }
+
+/* Rap phim: khong co dai ca si 2D, man hinh video chiem het san khau */
+body.mode-cinema #stage-2d { display: none; }
+body.mode-cinema .stage-wrap.mode-2d .screen-2d { bottom: 0; }
+
+/* Hang bo phieu skip — dung chung ca 2 khong gian */
+.skip-vote-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 12px; }

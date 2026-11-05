@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Karaoke Online - Hat chung nhieu may</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/livekit-client@2.15.6/dist/livekit-client.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.149.0/three.min.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo">🎤 KARAOKE <span>ONLINE</span></div>
+  <div class="top-right">
+    <span id="voice-badge" class="badge">Voice: dang kiem tra...</span>
+    <span id="coins-badge" class="badge coins">🪙 <b id="coins-value">100</b> xu</span>
+    <span id="me-badge" class="badge">Khach</span>
+    <button id="btn-settings" class="btn small">⚙️ Cai dat</button>
+  </div>
+</header>
+
+<div id="notice" class="notice" hidden></div>
+
+<!-- ============ SANH: CHI 2 LUA CHON ============ -->
+<main id="lobby-view">
+  <section class="hero">
+    <h1>Chon 1 trong 2 de vao chung</h1>
+    <p>Vao xem truoc khong can ten. Muon hat, chat hoac mo phim thi dat ten la xong, khong can dang nhap.</p>
+  </section>
+
+  <section class="profile-card">
+    <h2>Ten va nhan vat cua ban</h2>
+    <div class="profile-row">
+      <label>Ten hien thi <input id="input-name" type="text" maxlength="40" placeholder="Vi du: Ca Si Tre 123"></label>
+      <button id="btn-random-name" class="btn small">🎲 Ten ngau nhien</button>
+    </div>
+    <div class="avatar-pick">
+      <label>Kieu toc
+        <select id="select-hair">
+          <option value="ngan">Toc ngan</option>
+          <option value="dai">Toc dai</option>
+          <option value="buoc">Toc buoc duoi ngua</option>
+          <option value="xoe">Toc xoe</option>
+          <option value="mohawk">Mohawk</option>
+          <option value="buoc-cao">Bui cao</option>
+          <option value="ngan-xoen">Toc ngan xoen</option>
+          <option value="dai-gon">Toc dai gon song</option>
+          <option value="dread">Dreadlock</option>
+          <option value="buoc-ben">Toc buoc ben</option>
+        </select>
+      </label>
+      <label>Mau toc <input id="input-hair-color" type="color" value="#1a1a2e"></label>
+      <label>Mau da
+        <select id="select-skin">
+          <option value="#f6d7b0">Sang</option>
+          <option value="#e8b98a">Vang</option>
+          <option value="#c98d5e">Nau nhat</option>
+          <option value="#8d5524">Nau</option>
+        </select>
+      </label>
+      <label>Mau ao <input id="input-shirt-color" type="color" value="#ff2e88"></label>
+      <label>Phu kien
+        <select id="select-accessory">
+          <option value="">Khong co</option>
+          <option value="headphone">Tai nghe</option>
+          <option value="kinh">Kinh mat</option>
+          <option value="mu">Mu luoi trai</option>
+        </select>
+      </label>
+    </div>
+    <div id="avatar-preview" class="avatar-preview" aria-label="Xem truoc nhan vat"></div>
+    <p class="hint">Ten va nhan vat luu tren may cua ban (localStorage), lan sau vao lai van nho.</p>
+  </section>
+
+  <section>
+    <h2>Chon khong gian</h2>
+    <div id="spaces-grid" class="room-grid"></div>
+  </section>
+</main>
+
+<!-- ============ KHONG GIAN (KARAOKE / RAP PHIM) ============ -->
+<main id="space-view" hidden>
+  <div class="room-topbar">
+    <button id="btn-leave-space" class="btn small">← Ve sanh</button>
+    <h2 id="space-name">Khong gian</h2>
+    <span id="space-online" class="badge">0 dang xem</span>
+    <span id="space-host" class="badge karaoke-only">Chu phong: -</span>
+  </div>
+  <div id="guest-banner" class="notice" hidden>Ban dang xem truoc. Dat ten de hat, chat hoac mo phim.</div>
+
+  <div class="room-layout">
+    <div class="stage-col">
+      <div id="stage-wrap" class="stage-wrap cam-wide mode-2d">
+        <div id="stage-3d" hidden></div>
+        <div class="screen-2d" id="screen-area">
+          <div id="yt-player"></div>
+          <div id="yt-fallback" class="yt-fallback" hidden>
+            Khong tai duoc trinh phat YouTube. Kiem tra mang roi tai lai trang.
+          </div>
+          <div id="ad-waiting" class="ad-waiting" hidden>Đang chờ quảng cáo... moi nguoi cung cho mot chut.</div>
+          <div id="cheer-overlay" class="cheer-overlay"></div>
+          <div id="subtitle-line" class="subtitle-line"></div>
+        </div>
+        <div id="stage-2d" class="stage-2d">
+          <div class="singer-2d">
+            <div class="chibi" id="chibi-2d">
+              <div class="chibi-head"><span class="chibi-hair"></span><span class="chibi-face">◕‿◕</span><span class="chibi-mouth"></span></div>
+              <div class="chibi-body">🎤</div>
+            </div>
+            <div id="singer-name-2d" class="singer-name">Chua co ai hat</div>
+          </div>
+        </div>
+        <div id="laser" class="laser"></div>
+        <div id="stage-error" class="stage-error" hidden></div>
+      </div>
+
+      <div class="camera-row karaoke-only">
+        <span>Goc may:</span>
+        <button class="btn small cam-btn" data-cam="wide">Toan canh</button>
+        <button class="btn small cam-btn" data-cam="seat">Tu ghe ngoi</button>
+        <button class="btn small cam-btn" data-cam="screen">Tap trung man hinh</button>
+        <button class="btn small cam-btn" data-cam="stage">Tu san khau</button>
+      </div>
+
+      <div class="now-playing" id="now-playing">
+        <b>Dang phat:</b> <span id="np-title">Chua co gi</span>
+        <span id="np-singer"></span>
+      </div>
+
+      <div id="score-box" class="score-box karaoke-only" hidden></div>
+
+      <div class="controls karaoke-only" id="controls">
+        <button id="btn-play-next" class="btn">▶ Phat bai tiep</button>
+        <button id="btn-skip-song" class="btn">⏭ Qua bai (chu phong)</button>
+        <button id="btn-stop-song" class="btn">⏹ Dung bai</button>
+      </div>
+
+      <div class="skip-vote-row" id="skip-vote-row">
+        <button id="btn-vote-skip" class="btn">🗳 Bo phieu skip video dang phat</button>
+        <span id="skip-count" class="badge">0/0 phieu</span>
+        <span class="hint">Du da so nguoi dang xem (khong tinh nguoi dang hat) thi tu qua video tiep theo.</span>
+      </div>
+
+      <div class="star-vote karaoke-only" id="star-vote">
+        <span>Cham sao cho ca si:</span>
+        <button class="btn small star-btn" data-stars="1">★</button>
+        <button class="btn small star-btn" data-stars="2">★★</button>
+        <button class="btn small star-btn" data-stars="3">★★★</button>
+        <button class="btn small star-btn" data-stars="4">★★★★</button>
+        <button class="btn small star-btn" data-stars="5">★★★★★</button>
+      </div>
+
+      <div class="mic-box" id="mic-box">
+        <h3>Mic</h3>
+        <div id="mic-status" class="hint">Voice chua bat.</div>
+        <label>Thiet bi mic
+          <select id="select-mic-device"><option value="">Mac dinh</option></select>
+        </label>
+        <label class="check"><input id="check-headphone" type="checkbox"> Dang deo tai nghe (bat tieng nguoi khac)</label>
+        <button id="btn-ptt" class="btn" disabled>Giu de noi (push-to-talk)</button>
+        <div class="mic-level"><div id="mic-level-bar"></div></div>
+      </div>
+
+      <div class="seats-box">
+        <h3>Cho ngoi — bam vao ghe de ngoi</h3>
+        <div id="seats" class="seats"></div>
+      </div>
+    </div>
+
+    <div class="side-col">
+      <section class="panel karaoke-only">
+        <h3>Hang cho</h3>
+        <div class="add-song">
+          <input id="input-search" type="text" placeholder="Tim bai hat...">
+          <button id="btn-search" class="btn small">Tim</button>
+        </div>
+        <div id="search-results" class="search-results"></div>
+        <div class="add-song">
+          <input id="input-link" type="text" placeholder="Dan link YouTube...">
+          <button id="btn-add-link" class="btn small">＋ Them bai</button>
+        </div>
+        <p class="hint">Moi nguoi toi da 3 bai. Bai ke tiep luan phien giua cac nguoi hat.</p>
+        <ul id="queue-list" class="queue-list"></ul>
+      </section>
+
+      <section class="panel cinema-only">
+        <h3>Hang cho video — moi nguoi de xuat</h3>
+        <div class="add-song">
+          <input id="input-search-cinema" type="text" placeholder="Tim phim / video...">
+          <button id="btn-search-cinema" class="btn small">Tim</button>
+        </div>
+        <div id="search-results-cinema" class="search-results"></div>
+        <div class="add-song">
+          <input id="input-link-cinema" type="text" placeholder="Dan link YouTube...">
+          <button id="btn-add-link-cinema" class="btn small">＋ De xuat</button>
+        </div>
+        <p class="hint">Moi nguoi toi da 3 video dang cho. Video ke tiep luan phien giua cac nguoi de xuat. Het phim tu chay video tiep theo.</p>
+        <ul id="queue-list-cinema" class="queue-list"></ul>
+        <div class="add-song">
+          <button id="btn-play-next-cinema" class="btn small">▶ Phat video tiep theo</button>
+          <button id="btn-stop-cinema" class="btn small ghost">⏹ Dung phim</button>
+        </div>
+      </section>
+
+      <section class="panel karaoke-only">
+        <h3>Tang qua cho ca si</h3>
+        <div id="gifts" class="gifts"></div>
+        <div id="support-info" class="hint"></div>
+        <h3>Loi co vu len man hinh chung</h3>
+        <div class="add-song">
+          <input id="input-cheer" type="text" maxlength="80" placeholder="Co len! Hay qua!">
+          <button id="btn-cheer" class="btn small">📣 Co vu</button>
+        </div>
+      </section>
+
+      <section class="panel karaoke-only">
+        <h3>Bang xep hang phong</h3>
+        <ol id="leaderboard" class="leaderboard"></ol>
+      </section>
+
+      <section class="panel chat-panel">
+        <h3>Chat</h3>
+        <div id="chat-log" class="chat-log"></div>
+        <div class="emote-row" id="emote-row"></div>
+        <div class="add-song">
+          <input id="input-chat" type="text" maxlength="300" placeholder="Nhap tin nhan...">
+          <button id="btn-send-chat" class="btn small">Gui</button>
+        </div>
+        <button id="btn-set-name" class="btn small">✏️ Dat ten de hat / chat</button>
+      </section>
+    </div>
+  </div>
+</main>
+
+<!-- ============ CAI DAT ============ -->
+<div id="settings-modal" class="modal" hidden>
+  <div class="modal-card">
+    <h2>Cai dat (chi luu tren may cua ban)</h2>
+    <label class="check"><input id="set-subtitles" type="checkbox" checked> Hien phu de / loi bai</label>
+    <label class="check"><input id="set-laser" type="checkbox" checked> Bat laser / den disco</label>
+    <label class="check"><input id="set-hide-buttons" type="checkbox"> An nut, chi de lai chat</label>
+    <label>Do net
+      <select id="set-quality">
+        <option value="high">Cao</option>
+        <option value="smooth">Muot (nhe, cho may yeu)</option>
+      </select>
+    </label>
+    <button id="btn-close-settings" class="btn">Dong</button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
